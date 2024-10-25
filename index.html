@@ -39,7 +39,7 @@
                 z-index: 1000; /* Ensure it appears above other content */
             }
 
-            #loadingSpinner {
+            .loadingSpinner {
                 border: 8px solid rgba(255, 255, 255, 0.3);
                 border-top: 8px solid white;
                 border-radius: 50%;
@@ -56,7 +56,7 @@
     </head>
     <body>
         <div id="loadingOverlay">
-            <div id="loadingSpinner"></div>
+            <div class="loadingSpinner"></div>
             <div>Setting up environment...</div>
         </div>
         <div class="container">
@@ -125,7 +125,7 @@
                           break;
                       }
                       // If not, wait 5 seconds before trying again
-                      await new Promise(r => setTimeout(r, 10000));
+                      await new Promise(r => setTimeout(r, 5000));
                   }
                   document.getElementById('vnc').src = data.right_url;
                   document.querySelector('.left').src = data.left_url;
