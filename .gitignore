@@ -1,0 +1,7 @@
+__pycache__
+audios
+dist
+node_modules
+app.zip
+.env
+venv

@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Computer Use Demo</title>
+        <meta name="permissions-policy" content="fullscreen=*" />
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            .container {
+                display: none;
+                height: 100vh;
+                width: 100vw;
+            }
+            .left {
+                flex: 1;
+                border: none;
+                height: 100vh;
+            }
+            .right {
+                flex: 2;
+                border: none;
+                height: 100vh;
+            }
+            #loadingOverlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000; /* Ensure it appears above other content */
+            }
+
+            #loadingSpinner {
+                border: 8px solid rgba(255, 255, 255, 0.3);
+                border-top: 8px solid white;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="loadingOverlay">
+            <div id="loadingSpinner"></div>
+            <div>Setting up environment...</div>
+        </div>
+        <div class="container">
+            <iframe
+                src=""
+                class="left"
+                allow="fullscreen"
+            ></iframe>
+            <iframe
+                id="vnc"
+                src=""
+                class="right"
+                allow="fullscreen"
+            ></iframe>
+            <button
+                id="toggleViewOnly"
+                style="position: absolute; top: 10px; right: 10px; z-index: 1000"
+            >
+                Toggle Screen Control (Off)
+            </button>
+            <script>
+                document
+                    .getElementById("toggleViewOnly")
+                    .addEventListener("click", function () {
+                        var vncIframe = document.getElementById("vnc");
+                        var button = document.getElementById("toggleViewOnly");
+                        var currentSrc = vncIframe.src;
+                        if (currentSrc.includes("view_only=1")) {
+                            vncIframe.src = currentSrc.replace(
+                                "view_only=1",
+                                "view_only=0",
+                            );
+                            button.innerText = "Toggle Screen Control (On)";
+                        } else {
+                            vncIframe.src = currentSrc.replace(
+                                "view_only=0",
+                                "view_only=1",
+                            );
+                            button.innerText = "Toggle Screen Control (Off)";
+                        }
+                    });
+            </script>
+        </div>
+
+      <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          async function checkUrlStatus(left_url, right_url) {
+              const response = await fetch(`/api/check_status?left_url=${encodeURIComponent(left_url)}&right_url=${encodeURIComponent(right_url)}`, { method: 'GET' });
+              const data = await response.json();
+              return data;
+          }
+          // Function to make a POST API call
+          async function makePostCall() {
+              const response = await fetch('/api/run_container', { method: 'POST' });
+              const data = await response.json();
+              return data;
+          }
+
+          // Make the POST call and update the src attribute of iframes when both URLs are connected
+          makePostCall()
+              .then(async data => {
+                  while (true) {
+                      const status = await checkUrlStatus(data.left_url, data.right_url);
+                      if (status.left && status.right) {
+                          // If both left and right URLs are connected, break the loop
+                          break;
+                      }
+                      // If not, wait 5 seconds before trying again
+                      await new Promise(r => setTimeout(r, 10000));
+                  }
+                  document.getElementById('vnc').src = data.right_url;
+                  document.querySelector('.left').src = data.left_url;
+                  const loadingDiv = document.getElementById('loadingOverlay');
+                  document.getElementsByTagName('body')[0].removeChild(loadingDiv);
+                  document.getElementsByClassName('container')[0].style.display = 'flex';
+              });
+      });
+      </script>
+    </body>
+</html>
