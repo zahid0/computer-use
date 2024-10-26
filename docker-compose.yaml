@@ -1,0 +1,20 @@
+networks:
+  computer_use:
+
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - computer_use
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - 8000:80
+    networks:
+      - computer_use
