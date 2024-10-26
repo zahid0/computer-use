@@ -76,9 +76,6 @@ async def run_container(request: Request):
             {"path": f"{container.name}-chat", "port": port_8501},
         ],
     }
-    app_upstream = (
-        os.getenv("APP_UPSTREAM") if os.getenv("APP_UPSTREAM") else "localhost"
-    )
     template_env = Environment(loader=FileSystemLoader("."))
     template = template_env.get_template("nginx_template.j2")
 
@@ -96,15 +93,15 @@ async def run_container(request: Request):
         with open(file_path, "wb") as file:
             pickle.dump(data, file)
 
-        output = template.render(upstreams=data, app_upstream=app_upstream)
+        output = template.render(upstreams=data)
 
         with open("nginx/config.conf", "w") as f:
             f.write(output)
 
-    hostname = os.getenv("APP_HOSTNAME")
+    base_url = os.getenv("BASEURL")
     return {
-        "left_url": f"http://{hostname}/{container.name}-chat",
-        "right_url": f"http://{hostname}/{container.name}-screen/vnc.html?&resize=scale&autoconnect=1&view_only=1&reconnect=1&reconnect_delay=2000",
+        "left_url": f"{base_url}/{container.name}-chat",
+        "right_url": f"{base_url}/{container.name}-screen/vnc.html?&resize=scale&autoconnect=1&view_only=1&reconnect=1&reconnect_delay=2000",
     }
 
 
